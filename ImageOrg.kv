@@ -1,0 +1,595 @@
+#:kivy 1.2.0
+#:import os os
+
+#
+#       ImageOrg - Image viewer and Organzier
+#
+#       Copyright (C) 2012 Christopher Brian Jack
+#       (gau_veldt@hotmail.com)
+#
+#       This file is part of ImageOrg.
+#        
+#       ImageOrg is free software: you can redistribute it and/or modify
+#       it under the terms of the GNU General Public License as published by
+#       the Free Software Foundation, either version 3 of the License, or
+#       (at your option) any later version.
+#    
+#       ImageOrg is distributed in the hope that it will be useful,
+#       but WITHOUT ANY WARRANTY; without even the implied warranty of
+#       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#       GNU General Public License for more details.
+#
+#       You should have received a copy of the GNU General Public License
+#       along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+<Spacer>:
+    canvas:
+        Color:
+            rgb: 1,1,1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<FileSelWrapper>:
+    canvas.before:
+        Color:
+            rgb: self.bgColor
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<SearchResults>:
+    canvas.before:
+        Color:
+            rgb: self.bgColor
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<TagRankLabel>:
+    canvas.before:
+        Color:
+            rgb: self.bgColor
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<TagLabel>:
+    canvas.before:
+        Color:
+            rgb: self.bgColor
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<ResultRow>:
+    canvas.before:
+        Color:
+            rgb: self.bgColor
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<LoremIpsum>:
+    canvas.before:
+        Color:
+            rgb: .19,.19,.19
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<WidgetWithBG>:
+    canvas.before:
+        Color:
+            rgb: .19,.19,.19
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<ListText>:
+    size_hint: (None,None)
+    on_text: self.width=8+(self.font_size*len(self.text))
+    height: 24
+    padding: (4,0)
+    valign: 'middle'
+    halign: 'left'
+
+<SortHeading>:
+    size_hint: (None,None)
+    on_text: self.width=8+(self.font_size*len(self.text))
+    height: 24
+    padding: (4,0)
+    valign: 'middle'
+    halign: 'left'
+
+<MainWindow>:
+
+    id: MainWindow
+    searchDir: os.getcwd()
+    curImage: ''
+    registry: {'search':SearchResults,'files':FileSelect,'drives':DriveLetters,'panel':BrowserPanel,'tags':TagsAvailable,'image':ImageViewer}
+    imageInfo: {}
+    
+    on_imageInfo: pass
+    on_searchDir: self.updateDrives()
+    
+    Accordion:
+        orientation: 'horizontal'
+        
+        AccordionItem:
+            title: 'Image Viewer'
+            
+            BoxLayout:
+                size_hint: (.8,1)
+                
+                ScrollView:
+                    size_hint: (1,1)
+                    
+                    ImageWithInfo:
+                        id: ImageViewer
+                        focus: None
+                        size_hint: (None,None)
+                        source: root.curImage
+                        size: self.texture_size
+                        registry: {'main':MainWindow,'search':SearchResults,'tags':TagsAvailable,'files':FileSelect}
+                        
+                        on_tags: TagsAvailable.image_tags=self.tags
+        
+        AccordionItem:
+            title: 'Tagging'
+            
+            BoxLayout:
+                id: TagPanel
+                size_hint: (1,1)
+                padding: 1
+                spacing: 1
+                orientation: 'horizontal'
+                
+                BoxLayout:
+                    orientation: 'vertical'
+                    size_hint: (1,1)
+                    #width: 192
+                    #height: 200
+                
+                    canvas.before:
+                        Color:
+                            rgb: .19,.19,.19
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    
+                    Label:
+                        size_hint: (1,None)
+                        text: 'Image Tags'
+                        font_size: 14
+                        height: 32
+                                    
+                    ScrollView:
+                        size_hint: (1,1)
+                        
+                        on_size: self.children[0].minSize=self.size
+                    
+                        AvailableTagList:
+                            id: TagsAvailable
+                            orientation: 'vertical'
+                            size_hint: (None,None)
+                            tag_change: 0
+                            image_tags: []
+                            registry: {'search':SearchResults,'main':MainWindow}
+                            
+                            on_tag_change: self.UpdateImageTags(MainWindow.imageInfo);self.CenterWhenContentSmaller()
+                            on_image_tags: self.UpdateImageTags(MainWindow.imageInfo);self.CenterWhenContentSmaller()
+                            on_minSize: self.registry['search'].PopulateAvailableTags(self);self.UpdateImageTags(MainWindow.imageInfo);self.CenterWhenContentSmaller()
+                
+                BoxLayout:
+                    orientation: 'vertical'
+                    padding: 0
+                    spacing: 2
+                    
+                    BoxLayout:
+                        orientation: 'vertical'
+                        size_hint: (1,None)
+                        height: 32+33+8+32+8
+                        
+                        canvas.before:
+                            Color:
+                                rgb: .19,.19,.19
+                            Rectangle:
+                                pos: self.pos
+                                size: self.size
+                        
+                        Label:
+                            size_hint: (1,None)
+                            text: 'Add New Tag/Delete Tag:'
+                            halign: 'left'
+                            font_size: 14
+                            height: 32
+                            text_size: (self.width-8,None)
+                        
+                        BoxLayout:
+                            orientation: 'horizontal'
+                            size_hint: (1,None)
+                            height: 33
+                            
+                            Widget:
+                                size_hint: (None,1)
+                                width: 12
+                            
+                            TextInput:
+                                id: TagStringInput
+                                multiline: False
+                                size_hint:(1,None)
+                                height: 33
+                                padding: (8,8)
+                                
+                                on_text: SearchResults.ValidateTagInput(self,AddNewTag,DeleteTag)
+                            
+                            Widget:
+                                size_hint: (None,1)
+                                width: 12
+                        
+                        Widget:
+                            size_hint: (1,None)
+                            height: 8
+                        
+                        BoxLayout:
+                            orientation: 'horizontal'
+                            
+                            Widget:
+                                size_hint: (None,1)
+                                width: 12
+                            
+                            ButtonWithDisable:
+                                id: AddNewTag
+                                search: SearchResults
+                                tagPram: TagStringInput
+                                size_hint: (1,None)
+                                height: 32
+                                text: "Add as New Tag"
+                                
+                                on_press: self.search.AddNewTag(self.tagPram.text)
+                            
+                            Widget:
+                                size_hint: (None,1)
+                                width: 12
+                            
+                            ButtonWithDisable:
+                                id: DeleteTag
+                                search: SearchResults
+                                tagPram: TagStringInput
+                                size_hint: (1,None)
+                                height: 32
+                                text: "Delete Tag"
+                                
+                                on_press: self.search.DropTag(self.tagPram.text)
+                            
+                            Widget:
+                                size_hint: (None,1)
+                                width: 12
+                        
+                        Widget:
+                            size_hint: (1,None)
+                            height: 8
+                    
+                    WidgetWithBG:
+        
+        AccordionItem:
+            title: 'Search/Browse'
+            
+            TabbedPanel:
+                id: BrowserPanel
+                default_tab_content: SBTabFilesystem
+                default_tab_text: 'File Browser'
+                
+                TabbedPanelHeader:
+                    text: 'DB Browser'
+                    content: SBTabSearchResults
+                
+                TabbedPanelHeader:
+                    text: 'DB Filter'
+                    content: SBTabSearchFilter
+                
+                BoxLayout:
+                    id: SBTabFilesystem
+                    orientation: 'vertical'
+                    
+                    FileSelWrapper:
+                        id: FileSelect
+                        dirselect: True
+                        path: MainWindow.searchDir
+                        on_path: MainWindow.searchDir=self.path; MainWindow.updateDrives()
+                        on_selection: MainWindow.validateSelection(self.selection); MainWindow.updateDrives()
+                        filters: ['*.png','*.jpg','*.gif']
+                    
+                    Label:
+                        text: "Path: "+MainWindow.searchDir
+                        size_hint: (1,None)
+                        size: (self.width,40)
+                    
+                    BoxLayout:
+                        id: DriveLetters
+                        orientation: 'horizontal'
+                        size_hint: (1,None)
+                        height: 24
+                        
+                        Button:
+                            text: 'c:\\'
+                            on_press: FileSelect.path='c:\\'
+                
+                BoxLayout:
+                    id: SBTabSearchResults
+                    size_hint: (1,1)
+                    
+                    ScrollView:
+                        size_hint: (1,1)
+                        
+                        SearchResults:
+                            id: SearchResults
+                            orientation: 'vertical'
+                            limitOb: SearchResultLimit
+                            dataDir: ''
+                            size_hint: (None,None)
+                            width: self.ComputeWidth()
+                            on_children: self.ComputeWidth()
+                            height: 1+(24*len(self.children))
+                            registry: {'header':hdrResult,'main':MainWindow,'image':ImageViewer,'tags_avl':TagsAvailable,'tag_input':TagStringInput,'tag_filter':TagListForSearch}
+                            sorting: ''
+                            tags: []
+                            auto_index: False
+                            
+                            on_sorting: self.SetSorting()
+                            on_dataDir: self.OpenDB()
+                            on_selected: self.ViewSelectedImage()
+                            
+                            ResultHeader:
+                                id: hdrResult
+                
+                BoxLayout:
+                    id: SBTabSearchFilter
+                    orientation: 'horizontal'
+                    spacing: 4
+                    
+                    BoxLayout:
+                        orientation: 'vertical'
+                        
+                        Widget:
+                        
+                        Label:
+                            text: 'Search for text'
+                            size_hint: (1,None)
+                            height: 33
+                            font_size: 14
+                        
+                        TextInput:
+                            id: SearchForString
+                            multiline: False
+                            text: ''
+                            size_hint: (1,None)
+                            height: 33
+                            padding: (8,8)
+                            
+                            on_text: SearchInName.text="In Name";SearchInPath.text="In Path"
+                        
+                        Widget:
+                            size_hint: (1,None)
+                            height: 4
+                        
+                        BoxLayout:
+                            orientation: 'horizontal'
+                            size_hint: (1,None)
+                            height: 33
+                            
+                            Button:
+                                id: SearchInName
+                                size_hint: (1,None)
+                                markup: True
+                                text: 'In Name'
+                                height: 33
+                                
+                                on_press: self.text="[color=60C0ff]In Name[/color]";SearchInPath.text="In Path";SearchResults.ApplySearch(SearchForString,'name')
+                            
+                            Button:
+                                id: SearchInPath
+                                size_hint: (1,None)
+                                markup: True
+                                text: 'In Path'
+                                height: 33
+                                
+                                on_press: self.text="[color=60C0ff]In Path[/color]";SearchInName.text="In Name";SearchResults.ApplySearch(SearchForString,'path')
+                        
+                        Widget:
+                            size_hint: (1,None)
+                            height: 33
+                        
+                        BoxLayout:
+                            orientation: 'vertical'
+                            size_hint: (1,None)
+                            height: 33*2
+                            
+                            Label:
+                                text: 'Result Limit'
+                                size_hint: (1,None)
+                                height: 33
+                                font_size: 14
+                        
+                            TextInput:
+                                id: SearchResultLimit
+                                multiline: False
+                                text: '100'
+                                size_hint: (1,None)
+                                height: 33
+                                padding: (8,8)
+                        
+                        Widget:
+                            size_hint: (1,None)
+                            height: 33
+                        
+                        BoxLayout:
+                            orientation: 'vertical'
+                            size_hint: (1,None)
+                            height: 33*4
+                            
+                            Label:
+                                text: 'Filter Mode'
+                                size_hint: (1,None)
+                                font_size: 14
+                                height: 33
+                            
+                            ToggleButton:
+                                id: FilterModeAND
+                                text: 'Containing all [color=60c0ff]Tags[/color]'
+                                markup: True
+                                group: 'filterMode'
+                                size_hint: (1,None)
+                                height: 33
+                                
+                                on_press: SearchResults.UpdateFilterMode(0,[FilterModeAND,FilterModeOR,FilterModeNOR])
+                            
+                            ToggleButton:
+                                id: FilterModeOR
+                                text: 'Containing any [color=60c0ff]Tag[/color]'
+                                markup: True
+                                state: 'down'
+                                group: 'filterMode'
+                                size_hint: (1,None)
+                                height: 33
+                                
+                                on_press: SearchResults.UpdateFilterMode(1,[FilterModeAND,FilterModeOR,FilterModeNOR])
+                            
+                            ToggleButton:
+                                id: FilterModeNOR
+                                text: 'Does not include any [color=60c0ff]Tags[/color]'
+                                markup: True
+                                group: 'filterMode'
+                                size_hint: (1,None)
+                                height: 33
+                                
+                                on_press: SearchResults.UpdateFilterMode(2,[FilterModeAND,FilterModeOR,FilterModeNOR])
+                        
+                        Widget:
+                    
+                    BoxLayout:
+                        orientation: 'vertical'
+                        
+                        Label:
+                            size_hint: (1,None)
+                            text: 'Filter By Tag'
+                            height: 33
+                            font_size: 14
+                        
+                        BoxLayout:
+                            id: TagFilterParent
+                            orientation: 'vertical'
+                            
+                            canvas.before:
+                                Color:
+                                    rgb: .15,.15,.15
+                                Rectangle:
+                                    pos: self.pos
+                                    size: self.size
+                            
+                            ScrollView:
+                                id: TagScroll
+                                size_hint: (1,1)
+                                
+                                on_size: self.children[0].minSize=self.size
+                            
+                                TagFilterBox:
+                                    id: TagListForSearch
+                                    orientation: 'vertical'
+                                    size_hint: (None,None)
+                                    height: 0
+                                    tags: SearchResults.tags
+                                    
+                        
+                        BoxLayout:
+                            orientation: 'horizontal'
+                            size_hint: (1,None)
+                            height: 24
+                            
+                            Label:
+                                text: 'Filtered Tag'
+                                size_hint: (1,None)
+                                height: 24
+                                color: (.375,.75,1,1)
+                            
+                            Label:
+                                text: 'Unfiltered Tag'
+                                size_hint: (1,None)
+                                height: 24
+                                color: (.187,.375,.5,1)
+                        
+                        Button:
+                            size_hint: (1,None)
+                            height:33
+                            text: 'Apply Filter'
+                            
+                            on_press: SearchResults.ApplyFilter()
+    
+[LoremIpsum@Label]:
+    halign: 'center'
+    valign: 'middle'
+    text_size: (self.width-10,self.height-10)
+    text: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
+
+[WidgetWithBG@Widget]:
+
+[DriveButton@Button]:
+    text: ctx.text
+    target: ctx.target
+    on_press: self.target.path=self.text
+
+[HR@Spacer]:
+    size_hint: (1,None)
+    height: 1
+
+[ResultHeader@GridLayout]:
+    cols:8
+    size_hint: (None,None)
+    height: 25
+    SortHeading:
+        text: 'Name'
+    SortHeading:
+        text: 'Width'
+    SortHeading:
+        text: 'Height'
+    SortHeading:
+        text: 'Pixels'
+    SortHeading:
+        text: 'Size'
+    SortHeading:
+        text: 'Tags'
+    SortHeading:
+        text: 'Hash'
+    SortHeading:
+        text: 'Path'
+    HR:
+    HR:
+    HR:
+    HR:
+    HR:
+    HR:
+    HR:
+    HR:
+
+[ResultRow@ResultRowContainer]:
+    cols:8
+    size_hint: (None,None)
+    height: 24
+    ListText:
+        text: str(ctx.field['name'])
+    ListText:
+        text: str(ctx.field['width'])
+    ListText:
+        text: str(ctx.field['height'])
+    ListText:
+        text: str(ctx.field['pixels'])
+    ListText:
+        text: str(ctx.field['size'])
+    ListText:
+        text: str(ctx.field['tags'])
+    ListText:
+        text: str(ctx.field['hash'])
+    ListText:
+        text: str(ctx.field['path'])
