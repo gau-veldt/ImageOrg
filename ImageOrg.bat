@@ -1,1 +1,1 @@
-Kivy\kivy.bat ImageOrg.py
+..\Kivy\kivy.bat ImageOrg.py
