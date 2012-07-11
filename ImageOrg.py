@@ -1157,7 +1157,7 @@ if not os.path.exists(data):
         print "FATAL: Unable to create data directory."
         os.abort()
 # Access the datadir (tests accessibility)
-    if not os.access(data,os.F_OK,os.R_OK,os.W_OK):
+    if not os.access(data,os.F_OK|os.R_OK|os.W_OK):
         print "FATAL: Insufficient access to datadir:"
         if not os.access(data,os.R_OK):
             print "       Data directory is not readable."
