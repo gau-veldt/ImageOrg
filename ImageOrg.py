@@ -983,6 +983,45 @@ Factory.register('SearchResults', cls=SearchResults)
 
 class FileSelWrapper(FileChooserIconView):
     bgColor=ListProperty(colors['bgNormal'])
+    
+    def SelectFile(self,**kwargs):
+        if len(self.selection)<1:
+            return
+        cur=self.selection[0]
+        sfiles=[entry.path for entry in self._items]
+        fcount=len(sfiles)
+        if fcount<1:
+            return
+        offset=min(kwargs.get('offset',0),fcount)%fcount
+        if offset==0:
+            return
+        if cur in sfiles:
+            idx=sfiles.index(cur)
+            idx+=offset
+            if idx<0:
+                idx+=fcount
+            if idx>=fcount:
+                idx-=fcount
+        new=sfiles[idx]
+        self.selection=[new,]
+    
+    def SelectPrevFile(self):
+        return self.SelectFile(offset=-1)
+
+    def SelectNextFile(self):
+        return self.SelectFile(offset=1)
+
+    def IconsPerRow(self):
+        w=self.width
+        row=int((w-10)/110)
+        print w,row
+        return row
+
+    def SelectUpperFile(self):
+        return self.SelectFile(offset=-self.IconsPerRow())
+
+    def SelectLowerFile(self):
+        return self.SelectFile(offset=self.IconsPerRow())
 
 Factory.register('FileSelWrapper', cls=FileSelWrapper)
 
