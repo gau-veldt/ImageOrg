@@ -998,8 +998,6 @@ class FileSelWrapper(FileChooserIconView):
         if cur in sfiles:
             idx=sfiles.index(cur)
             idx+=offset
-            if idx<0:
-                idx+=fcount
             if idx>=fcount:
                 idx-=fcount
         new=sfiles[idx]
@@ -1014,7 +1012,7 @@ class FileSelWrapper(FileChooserIconView):
     def IconsPerRow(self):
         w=self.width
         row=int((w-10)/110)
-        print w,row
+        #print w,row
         return row
 
     def SelectUpperFile(self):
